@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-f = open("kodas2.txt", "r", encoding="utf-8")
+f = open("kodas.txt", "r", encoding="utf-8")
 text = f.read()
 
 with open("abc_frequencies.txt", "r") as file:
