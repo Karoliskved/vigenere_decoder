@@ -1,27 +1,27 @@
 import math
 import numpy as np
 
-f = open("kodas.txt", "r", encoding="utf-8")
+f = open("kodas2.txt", "r", encoding="utf-8")
 text = f.read()
-newText = ""
 
 with open("abc_frequencies.txt", "r") as file:
-    abcFreq = file.read().split()
-    abcFreq = [float(num) for num in abcFreq]
-abcFreq = [i/100 for i in abcFreq]
+    abc_freq = file.read().split()
+    abc_freq = [float(num) for num in abc_freq]
+abc_freq = [i/100 for i in abc_freq]
 
 abc = "aąbcčdeęėfghiįyjklmnoprsštuųūvzž"
 
-def removePunctuationAndSpaces(text):
+def remove_punctuation_and_spaces(text):
     text = text.replace(',', '')
     text = text.replace(':', '')
     text = text.replace(';', '')
     text = text.replace('.', '')
     text = text.replace(' ', '')
+    text = text.replace('-', '')
     text = text.lower()
     return text
 
-def codeToText(code):
+def code_to_text(code):
     text = ''
     for el in range(0, len(code)):
         for a in range(0, len(abc)):
@@ -30,111 +30,108 @@ def codeToText(code):
                 continue
     return(text)
 
-
 def decrypt(text, key_code, key_length):
-    initialTextCode = [] # numbers
+    encrypted_text_code = [] # encrypted text converted to numbers
 
     for i in range(0, len(text)):
         for j in range(0, len(abc)):
             if(text[i].lower() == abc[j]):
-                initialTextCode.append(j)
+                encrypted_text_code.append(j)
                 continue
 
-    newTextCode = []
+    decrypted_text_code = [] # decrypted text in numbers
     for i in range(0, len(text), key_length):
         text_fragment_size = key_length if math.floor((len(text)-i)/key_length) > 0 else len(text)%key_length
         for j in range(0, text_fragment_size):
-            newTextCode.append((initialTextCode[i+j]-key_code[j])%len(abc))
+            decrypted_text_code.append((encrypted_text_code[i+j]-key_code[j])%len(abc))
 
-    newText = ''
-    for el in newTextCode:
-        newText += abc[el]
+    decrypted_text = '' # decrypted text string
+    for el in decrypted_text_code:
+        decrypted_text += abc[el]
 
-    key = codeToText(key_code)
+    key = code_to_text(key_code)
     print("Possible key:", key)
-    print("Decrypted text:", newText)
+    print("Decrypted text:", decrypted_text)
 
-
-def splitTextIntoPairs(text):
+def split_text_into_pairs(text):
     pairs = []
     for i in range(0, len(text)-1):
         pairs.append(text[i] + text[i+1])
     return pairs
 
-def checkForDigrams(pairs):
-    digrams = []
-    indices = []
-    minKeyLength = 2
-    maxKeyLength = 10
+def check_for_digrams(pairs):
+    digrams, spaces_between_digrams = [], []
+    min_key_length = 2
+    max_key_length = 10
     
     for i in range(0, len(pairs)-1):
         for j in range(i+1, len(pairs)):
             if(pairs[i] == pairs[j]):
                 digrams.append(pairs[j])
-                indices.append(j-i)
+                spaces_between_digrams.append(j-i)
 
-    divisorCount = [0] * (maxKeyLength-1)
-    for i in range(0, len(indices)-1):
-        for j in range(minKeyLength, maxKeyLength+1):
-            if(indices[i]%j == 0):
-                divisorCount[j-minKeyLength] += 1
+    divisor_count = [0] * (max_key_length-1)
+    for i in range(0, len(spaces_between_digrams)-1):
+        for j in range(min_key_length, max_key_length+1):
+            if(spaces_between_digrams[i]%j == 0):
+                divisor_count[j-min_key_length] += 1
     
-    topKeyIndices = np.argsort(np.array(divisorCount))
-    topKeyIndices = np.flip(topKeyIndices)[:3]
-    topKeys = topKeyIndices + minKeyLength
-    return list(topKeys)
+    top_key_indices = np.argsort(np.array(divisor_count))
+    top_key_indices = np.flip(top_key_indices)[:3]
+    top_keys = top_key_indices + min_key_length
+    return list(top_keys)
 
-def splitIntoLength(text, length):
-    splitArray = []
-    for i in range(0, len(text), length):
+def split_text_by_key_length(text, key_length):
+    split_array = []
+    for i in range(0, len(text), key_length):
         item = ''
-        itemSize = length if math.floor((len(text)-i)/length) > 0 else len(text)%length
-        for j in range(0, itemSize):
+        item_size = key_length if math.floor((len(text)-i)/key_length) > 0 else len(text)%key_length
+        for j in range(0, item_size):
             item += text[i+j]
-        splitArray.append(item)
-    return(splitArray)
+        split_array.append(item)
+    return(split_array)
 
-def shiftArray(array):
+def shift_array(array):
     newArray = []
     for i in range(0, len(array)):
         newArray.append(array[(i+1)%len(array)])
     return newArray
 
-def countLetterPossibility(array):
+def find_key_elements(array):
 
-    allSteps = []
+    key_elements = []
 
     for i in range(0, len(array[0])):
-        letterCount = [0] * len(abc)
+        letter_count = [0] * len(abc)
         for j in range(0, len(array)-1):
             for k in range(0, len(abc)):
                 if(array[j][i] == abc[k]):
-                    letterCount[k] +=1
+                    letter_count[k] +=1
                     continue
 
-        allLetterCount = sum(letterCount)
-        letterPercentages = [i/allLetterCount for i in letterCount]
+        all_letter_count = sum(letter_count)
+        letter_percentages = [i/all_letter_count for i in letter_count]
         
-        maxStep = 0
-        maxNum = 0
+        max_step = 0
+        max_num = 0
         for i in range(0, len(abc)):
             res = 0
             for j in range(0, len(abc)):
-                res += letterPercentages[j] * abcFreq[j]
-            if(res > maxNum):
-                maxNum = res
-                maxStep = i
-            letterPercentages = shiftArray(letterPercentages)
-        allSteps.append(maxStep)
+                res += letter_percentages[j] * abc_freq[j]
+            if(res > max_num):
+                max_num = res
+                max_step = i
+            letter_percentages = shift_array(letter_percentages)
+        key_elements.append(max_step)
 
-    return(allSteps)
+    return(key_elements)
 
-text = removePunctuationAndSpaces(text)
-letter_pairs = splitTextIntoPairs(text)
-key_lengths = checkForDigrams(letter_pairs)
+text = remove_punctuation_and_spaces(text)
+letter_pairs = split_text_into_pairs(text)
+key_lengths = check_for_digrams(letter_pairs)
 
 for i in range(0, len(key_lengths)):
     print(f"\nKey length: {key_lengths[i]}")
-    split_text = splitIntoLength(text, key_lengths[i])
-    possible_key = countLetterPossibility(split_text)
+    split_text = split_text_by_key_length(text, key_lengths[i])
+    possible_key = find_key_elements(split_text)
     decrypt(text, possible_key, key_lengths[i])
