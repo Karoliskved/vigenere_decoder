@@ -1,4 +1,4 @@
-import math
+import math #testing
 import numpy as np
 
 f = open("kodas.txt", "r", encoding="utf-8")
@@ -36,7 +36,7 @@ def decrypt(text, key_code, key_length):
     for i in range(0, len(text)):
         for j in range(0, len(abc)):
             if(text[i].lower() == abc[j]):
-                encrypted_text_code.append(j)
+                encrypted_text_code.append(j) 
                 continue
 
     decrypted_text_code = [] # decrypted text in numbers
